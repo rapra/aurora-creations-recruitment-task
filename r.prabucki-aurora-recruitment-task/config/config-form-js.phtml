@@ -1,0 +1,141 @@
+<?php 
+/*
+jquery.validate plugin initialization with definitions rules
+*/
+?>
+<script>
+	$(document).ready(function () {
+		
+		//Article remove
+		$(".articleRemoveBtn").click(function(event){
+			$btn = $(event.currentTarget);
+			$.confirm({
+				title: 'Article remove',
+				content: 'Please confirm article remove',
+				buttons: {
+					remove:{ 
+						btnClass: 'btn-primary',
+						action: function () {
+							$.ajax({
+								type: "POST",
+								url: "ajax-submit.php",
+								data: {remove:$btn.data('id')},
+								beforeSend:function () {
+									$btn.find('.fa-spin').removeClass('d-none');
+								},
+								success: function (response) {
+									$btn.find('.fa-spin')
+									.addClass('d-none')
+									.fadeIn(500, function () {
+										$btn.find('.fa-check').removeClass('d-none');
+										setTimeout ( function(){
+											//$('#formSubmitInfo').html('<span>Redirecting...</span>')
+											window.location.href = './';
+										},500 );
+									});
+									
+								},
+								complete: function (response) {
+									$btn.find('.fa-spin').addClass('d-none');
+								},
+								error: function(jqXHR,error, errorThrown) { 
+									if(jqXHR.status&&jqXHR.status==400){
+										$.alert('Error: '+jqXHR.responseText); 
+									}else{
+										$.alert("Something went wrong"+jqXHR.responseText); 
+									}
+								}
+								
+								
+							});
+						}
+					},
+					cancel: function () {
+					}
+				}
+			});
+			/*
+			
+			*/
+		});
+		
+		//Article form validation and submission
+		$("#articleForm").validate({
+			rules: {
+				article_title: {
+					required: true,
+					rangelength:[5,250]
+				},
+				article_description: {
+					rangelength:[10,500]
+				},
+				article_status: "required"
+			},
+			messages: {
+				firstname: "Please enter your firstname",
+				lastname: "Please enter your lastname",
+				password: {
+				required: "Please provide a password",
+				minlength: "Your password must be at least 5 characters long"
+				},
+				email: "Please enter a valid email address"
+			},
+			highlight: function (element) {
+				jQuery(element).closest('.form-control').addClass('is-invalid');
+			},
+			unhighlight: function (element) {
+				jQuery(element).closest('.form-control').removeClass('is-invalid');
+				jQuery(element).closest('.form-control').addClass('is-valid');
+			},
+
+			errorElement: 'div',
+			errorClass: 'invalid-feedback',
+			errorPlacement: function (error, element) {
+				if (element.parent('.input-group-prepend').length) {
+					$(element).siblings(".invalid-feedback").append(error);
+					//error.insertAfter(element.parent());
+				} else {
+					error.insertAfter(element);
+				}
+			},
+			onkeyup: false, 
+			submitHandler: function (form) {
+				
+				$.ajax({
+					type: "POST",
+					url: "ajax-submit.php",
+					data: $(form).serialize(),
+					beforeSend:function () {
+						$('#formSubmitInfo').html('<span>Subbmiting form...<i class="fas fa-circle-notch fa-spin ml-2" ></i></span>');
+					},
+					success: function (response) {
+						$('#formSubmitInfo').html('<span>Success</span>')
+						.hide()
+						.fadeIn( 500, function () {
+							$('#formSubmitInfo').append('<i class="fas fa-check ml-2" ></i>');
+							setTimeout ( function(){ 
+								$('#formSubmitInfo').html('<span>Redirecting...</span>')
+								window.location.href = './';
+							},500 );
+						});
+						
+					},
+					complete: function (response) {
+						//alert(JSON.stringify(response));
+					},
+					
+					error: function(jqXHR,error, errorThrown) { 
+						if(jqXHR.status&&jqXHR.status==400){
+							$('#formSubmitInfo').html('Error: '+jqXHR.responseText); 
+						}else{
+							$('#formSubmitInfo').html("Something went wrong");
+						}
+					}
+					
+					
+				});
+				return false; // required to block normal submit since you used ajax
+			}
+	});
+});	
+</script>
